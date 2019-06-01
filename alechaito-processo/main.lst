@@ -1,0 +1,377 @@
+CCS PCM C Compiler, Version 5.007, 61971               04-nov-18 19:45
+
+               Filename:   C:\Users\Pichau\Documents\ufsc\microcontroladores\processo\main.lst
+
+               ROM used:   260 words (3%)
+                           Largest free fragment is 2048
+               RAM used:   14 (4%) at main() level
+                           24 (7%) worst case
+               Stack used: 1 locations (0 in main + 1 for interrupts)
+               Stack size: 8
+
+*
+0000:  MOVLW  00
+0001:  MOVWF  0A
+0002:  GOTO   0A2
+0003:  NOP
+0004:  MOVWF  7F
+0005:  SWAPF  03,W
+0006:  CLRF   03
+0007:  MOVWF  21
+0008:  MOVF   0A,W
+0009:  MOVWF  20
+000A:  CLRF   0A
+000B:  MOVF   04,W
+000C:  MOVWF  22
+000D:  MOVF   77,W
+000E:  MOVWF  23
+000F:  MOVF   78,W
+0010:  MOVWF  24
+0011:  MOVF   79,W
+0012:  MOVWF  25
+0013:  MOVF   7A,W
+0014:  MOVWF  26
+0015:  BCF    03.7
+0016:  BCF    03.5
+0017:  BTFSS  0B.4
+0018:  GOTO   01B
+0019:  BTFSC  0B.1
+001A:  GOTO   032
+001B:  MOVLW  8C
+001C:  MOVWF  04
+001D:  BTFSS  00.0
+001E:  GOTO   021
+001F:  BTFSC  0C.0
+0020:  GOTO   035
+0021:  MOVF   22,W
+0022:  MOVWF  04
+0023:  MOVF   23,W
+0024:  MOVWF  77
+0025:  MOVF   24,W
+0026:  MOVWF  78
+0027:  MOVF   25,W
+0028:  MOVWF  79
+0029:  MOVF   26,W
+002A:  MOVWF  7A
+002B:  MOVF   20,W
+002C:  MOVWF  0A
+002D:  SWAPF  21,W
+002E:  MOVWF  03
+002F:  SWAPF  7F,F
+0030:  SWAPF  7F,W
+0031:  RETFIE
+0032:  BCF    0A.3
+0033:  BCF    0A.4
+0034:  GOTO   050
+0035:  BCF    0A.3
+0036:  BCF    0A.4
+0037:  GOTO   038
+.................... /*  
+.................... // Universidade Federal de Santa Catarina - Microcontroladores 
+.................... // Desenvolvedor: Ale Chaito 
+.................... // Data: 04/11/2018 
+.................... // Objetivo: Processo Industrial com misturador, tanque e bomba 
+.................... */  
+....................  
+.................... #include <main.h> 
+.................... #include <16F877A.h> 
+.................... //////// Standard Header file for the PIC16F877A device //////////////// 
+.................... #device PIC16F877A 
+*
+006B:  MOVF   2D,W
+006C:  ANDLW  07
+006D:  MOVWF  77
+006E:  RRF    2D,W
+006F:  MOVWF  78
+0070:  RRF    78,F
+0071:  RRF    78,F
+0072:  MOVLW  1F
+0073:  ANDWF  78,F
+0074:  MOVF   78,W
+0075:  ADDWF  2F,W
+0076:  MOVWF  04
+0077:  BCF    03.7
+0078:  BTFSC  30.0
+0079:  BSF    03.7
+007A:  CLRF   78
+007B:  INCF   78,F
+007C:  INCF   77,F
+007D:  GOTO   07F
+007E:  RLF    78,F
+007F:  DECFSZ 77,F
+0080:  GOTO   07E
+0081:  MOVF   2E,F
+0082:  BTFSC  03.2
+0083:  GOTO   087
+0084:  MOVF   78,W
+0085:  IORWF  00,F
+0086:  GOTO   08A
+0087:  COMF   78,F
+0088:  MOVF   78,W
+0089:  ANDWF  00,F
+008A:  RETURN
+....................  
+.................... #list 
+....................  
+.................... #FUSES NOWDT, XT, PUT, NOLVP 
+.................... #use delay(clock=4000000) 
+008B:  MOVLW  2D
+008C:  MOVWF  04
+008D:  BCF    03.7
+008E:  MOVF   00,W
+008F:  BTFSC  03.2
+0090:  GOTO   09F
+0091:  MOVLW  01
+0092:  MOVWF  78
+0093:  CLRF   77
+0094:  DECFSZ 77,F
+0095:  GOTO   094
+0096:  DECFSZ 78,F
+0097:  GOTO   093
+0098:  MOVLW  4A
+0099:  MOVWF  77
+009A:  DECFSZ 77,F
+009B:  GOTO   09A
+009C:  GOTO   09D
+009D:  DECFSZ 00,F
+009E:  GOTO   091
+009F:  BCF    0A.3
+00A0:  BCF    0A.4
+00A1:  GOTO   0FE (RETURN)
+....................  
+....................  
+....................  
+.................... int flag_timer; 
+....................  
+.................... #int_timer1 
+.................... void routine_t1 () { 
+....................    //Tratamento da finalizacao do processo, encerrando e reinicializando status 
+....................    flag_timer = flag_timer + 1; 
+*
+0038:  MOVLW  01
+0039:  ADDWF  27,F
+....................    // Encerro o processo 
+....................    if(flag_timer == 20) { 
+003A:  MOVF   27,W
+003B:  SUBLW  14
+003C:  BTFSS  03.2
+003D:  GOTO   047
+....................       output_High(PIN_D1); // Valvul = PIN D1 
+003E:  BSF    03.5
+003F:  BCF    08.1
+0040:  BCF    03.5
+0041:  BSF    08.1
+....................       output_Low(PIN_D2); // Misturador = PIN D2  
+0042:  BSF    03.5
+0043:  BCF    08.2
+0044:  BCF    03.5
+0045:  BCF    08.2
+....................    } 
+0046:  GOTO   04C
+....................    else { 
+....................       // Carrego novamente o timer 
+....................       set_timer1(3036); 
+0047:  CLRF   0E
+0048:  MOVLW  0B
+0049:  MOVWF  0F
+004A:  MOVLW  DC
+004B:  MOVWF  0E
+....................    } 
+.................... } 
+....................  
+004C:  BCF    0C.0
+004D:  BCF    0A.3
+004E:  BCF    0A.4
+004F:  GOTO   021
+.................... #int_ext 
+.................... void routine_ext() { 
+....................    // Tratamento do sensor de temperatura que atingiu 40 graus 
+....................    flag_timer = 0; 
+0050:  CLRF   27
+....................    output_High(PIN_D2); // Misturador = PIN D2 
+0051:  BSF    03.5
+0052:  BCF    08.2
+0053:  BCF    03.5
+0054:  BSF    08.2
+....................    output_Low(PIN_D7); // Ligando resistencia 
+0055:  BSF    03.5
+0056:  BCF    08.7
+0057:  BCF    03.5
+0058:  BCF    08.7
+....................    //Ativo o contador de 40 segundos para aguardar o misturador 
+....................    //Reinicio o processo com uma interrupcao 
+....................    // Timer1 
+....................    // 4Mhz/4 = 1Mhz 
+....................    // 1Mhz/8 = 125 khz  
+....................    // 125.000 pulsos significa 1s 
+....................    // Inicia o timer em 34286 (65.536-31.250) 
+....................    // Se estourar uma vez passaram 0.5 segundos 
+....................    //setup_timer_1(RTCC_DIV_1); 
+....................    setup_timer_1(T1_INTERNAL | RTCC_DIV_8); 
+0059:  MOVLW  87
+005A:  MOVWF  10
+....................    set_timer1(3036); 
+005B:  CLRF   0E
+005C:  MOVLW  0B
+005D:  MOVWF  0F
+005E:  MOVLW  DC
+005F:  MOVWF  0E
+....................    enable_interrupts(int_timer1); 
+0060:  BSF    03.5
+0061:  BSF    0C.0
+....................    // Fico aqui até estourar 20 vezes o timer significando 20 * 0.5 segundos = 10 segundos de mistura 
+....................    while(flag_timer < 20); 
+0062:  BCF    03.5
+0063:  MOVF   27,W
+0064:  SUBLW  13
+0065:  BTFSC  03.0
+0066:  GOTO   063
+....................  
+0067:  BCF    0B.1
+0068:  BCF    0A.3
+0069:  BCF    0A.4
+006A:  GOTO   021
+.................... } 
+....................  
+.................... void main() { 
+*
+00A2:  BSF    03.5
+00A3:  BSF    1F.0
+00A4:  BSF    1F.1
+00A5:  BSF    1F.2
+00A6:  BCF    1F.3
+00A7:  MOVLW  07
+00A8:  MOVWF  1C
+00A9:  BCF    03.7
+00AA:  MOVLW  1F
+00AB:  ANDWF  03,F
+....................    // Ativando interrupcoes 
+....................    enable_interrupts(global); 
+00AC:  MOVLW  C0
+00AD:  BCF    03.5
+00AE:  IORWF  0B,F
+....................    enable_interrupts(int_ext); 
+00AF:  BSF    0B.4
+....................    ext_int_edge(H_TO_L); 
+00B0:  BSF    03.5
+00B1:  BCF    01.6
+....................     
+....................    // Declarando variaveis 
+....................    int valvula, bomba, resist, flag_cheio; 
+....................    int1 sn; 
+....................     
+....................    // Inicializando 
+....................    bomba = PIN_D0; 
+00B2:  MOVLW  40
+00B3:  BCF    03.5
+00B4:  MOVWF  29
+....................    valvula = PIN_D1; 
+00B5:  MOVLW  41
+00B6:  MOVWF  28
+....................    resist = PIN_D7; 
+00B7:  MOVLW  47
+00B8:  MOVWF  2A
+....................    sn = input(pin_b1); 
+00B9:  BSF    03.5
+00BA:  BSF    06.1
+00BB:  BCF    03.5
+00BC:  BCF    2C.0
+00BD:  BTFSC  06.1
+00BE:  BSF    2C.0
+....................    flag_cheio = 0; 
+00BF:  CLRF   2B
+....................     
+....................    Port_b_pullups(true); 
+00C0:  BSF    03.5
+00C1:  BCF    01.7
+....................    while(TRUE) { 
+....................       // Representaremos o nível do tanque baseado em apenas um sensor 
+....................       // BIT: 0 - sensor ativado (tanque cheio) | 1 - sensor desativado (tanque abaixo do nível) 
+....................       sn = input(pin_b1); 
+00C2:  BSF    06.1
+00C3:  BCF    03.5
+00C4:  BCF    2C.0
+00C5:  BTFSC  06.1
+00C6:  BSF    2C.0
+....................       if(sn == 1) { 
+00C7:  BTFSS  2C.0
+00C8:  GOTO   0DE
+....................          output_High(bomba); 
+00C9:  MOVF   29,W
+00CA:  MOVWF  2D
+00CB:  MOVLW  01
+00CC:  MOVWF  2E
+00CD:  CLRF   30
+00CE:  CLRF   2F
+00CF:  CALL   06B
+00D0:  MOVF   29,W
+00D1:  MOVWF  2D
+00D2:  CLRF   2E
+00D3:  CLRF   30
+00D4:  MOVLW  80
+00D5:  MOVWF  2F
+00D6:  CALL   06B
+....................          while(input(pin_b1) == 1); 
+00D7:  BSF    03.5
+00D8:  BSF    06.1
+00D9:  BCF    03.5
+00DA:  BTFSC  06.1
+00DB:  GOTO   0D7
+....................          flag_cheio = 1; 
+00DC:  MOVLW  01
+00DD:  MOVWF  2B
+....................       } 
+....................        
+....................       // Tanque cheio tratamento, inicio do processo. 
+....................       if(flag_cheio == 1) { 
+00DE:  DECFSZ 2B,W
+00DF:  GOTO   101
+....................          output_Low(bomba);  
+00E0:  MOVF   29,W
+00E1:  MOVWF  2D
+00E2:  CLRF   2E
+00E3:  CLRF   30
+00E4:  CLRF   2F
+00E5:  CALL   06B
+00E6:  MOVF   29,W
+00E7:  MOVWF  2D
+00E8:  CLRF   2E
+00E9:  CLRF   30
+00EA:  MOVLW  80
+00EB:  MOVWF  2F
+00EC:  CALL   06B
+....................          output_High(resist); // Ligando resistencia 
+00ED:  MOVF   2A,W
+00EE:  MOVWF  2D
+00EF:  MOVLW  01
+00F0:  MOVWF  2E
+00F1:  CLRF   30
+00F2:  CLRF   2F
+00F3:  CALL   06B
+00F4:  MOVF   2A,W
+00F5:  MOVWF  2D
+00F6:  CLRF   2E
+00F7:  CLRF   30
+00F8:  MOVLW  80
+00F9:  MOVWF  2F
+00FA:  CALL   06B
+....................          delay_ms(100); 
+00FB:  MOVLW  64
+00FC:  MOVWF  2D
+00FD:  GOTO   08B
+....................          flag_cheio == 0; 
+00FE:  MOVF   2B,F
+00FF:  BTFSS  03.2
+0100:  MOVLW  00
+....................       } 
+0101:  BSF    03.5
+0102:  GOTO   0C2
+....................        
+....................    } 
+....................  
+....................  
+.................... } 
+0103:  SLEEP
+
+Configuration Fuses:
+   Word  1: 3F71   XT NOWDT PUT BROWNOUT NOLVP NOCPD NOWRT NODEBUG NOPROTECT

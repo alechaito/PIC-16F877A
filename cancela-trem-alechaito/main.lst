@@ -1,0 +1,650 @@
+CCS PCM C Compiler, Version 5.007, 61971               16-out-18 20:18
+
+               Filename:   C:\Users\Pichau\Documents\workspace\ufsc\microcontroladores\cancela-trem\main.lst
+
+               ROM used:   504 words (6%)
+                           Largest free fragment is 2048
+               RAM used:   19 (5%) at main() level
+                           28 (8%) worst case
+               Stack used: 1 locations (0 in main + 1 for interrupts)
+               Stack size: 8
+
+*
+0000:  MOVLW  01
+0001:  MOVWF  0A
+0002:  GOTO   158
+0003:  NOP
+0004:  MOVWF  7F
+0005:  SWAPF  03,W
+0006:  CLRF   03
+0007:  MOVWF  21
+0008:  MOVF   0A,W
+0009:  MOVWF  20
+000A:  CLRF   0A
+000B:  MOVF   04,W
+000C:  MOVWF  22
+000D:  MOVF   77,W
+000E:  MOVWF  23
+000F:  MOVF   78,W
+0010:  MOVWF  24
+0011:  MOVF   79,W
+0012:  MOVWF  25
+0013:  MOVF   7A,W
+0014:  MOVWF  26
+0015:  BCF    03.7
+0016:  BCF    03.5
+0017:  BTFSS  0B.4
+0018:  GOTO   01B
+0019:  BTFSC  0B.1
+001A:  GOTO   02C
+001B:  MOVF   22,W
+001C:  MOVWF  04
+001D:  MOVF   23,W
+001E:  MOVWF  77
+001F:  MOVF   24,W
+0020:  MOVWF  78
+0021:  MOVF   25,W
+0022:  MOVWF  79
+0023:  MOVF   26,W
+0024:  MOVWF  7A
+0025:  MOVF   20,W
+0026:  MOVWF  0A
+0027:  SWAPF  21,W
+0028:  MOVWF  03
+0029:  SWAPF  7F,F
+002A:  SWAPF  7F,W
+002B:  RETFIE
+002C:  BCF    0A.3
+002D:  BCF    0A.4
+002E:  GOTO   064
+.................... //---- Universidade Federal de Santa Catarina 
+.................... //---- Disciplina: Microcontroladores e Microprocessadores 
+.................... //---- Desenvolvido por: Ale Chaito 
+.................... //---- Controle de um sistema de trem e cancela 
+....................  
+.................... #include <16F877A.h> 
+.................... //////// Standard Header file for the PIC16F877A device //////////////// 
+.................... #device PIC16F877A 
+*
+0044:  MOVF   33,W
+0045:  ANDLW  07
+0046:  MOVWF  77
+0047:  RRF    33,W
+0048:  MOVWF  78
+0049:  RRF    78,F
+004A:  RRF    78,F
+004B:  MOVLW  1F
+004C:  ANDWF  78,F
+004D:  MOVF   78,W
+004E:  ADDWF  35,W
+004F:  MOVWF  04
+0050:  BCF    03.7
+0051:  BTFSC  36.0
+0052:  BSF    03.7
+0053:  CLRF   78
+0054:  INCF   78,F
+0055:  INCF   77,F
+0056:  GOTO   058
+0057:  RLF    78,F
+0058:  DECFSZ 77,F
+0059:  GOTO   057
+005A:  MOVF   34,F
+005B:  BTFSC  03.2
+005C:  GOTO   060
+005D:  MOVF   78,W
+005E:  IORWF  00,F
+005F:  GOTO   063
+0060:  COMF   78,F
+0061:  MOVF   78,W
+0062:  ANDWF  00,F
+0063:  RETURN
+....................  
+.................... #list 
+....................  
+.................... #FUSES XT, NOPUT, NOCPD, NOWRT, NOWDT, NOBROWNOUT 
+.................... #use delay(crystal=4000000) 
+*
+002F:  MOVLW  34
+0030:  MOVWF  04
+0031:  BCF    03.7
+0032:  MOVF   00,W
+0033:  BTFSC  03.2
+0034:  GOTO   043
+0035:  MOVLW  01
+0036:  MOVWF  78
+0037:  CLRF   77
+0038:  DECFSZ 77,F
+0039:  GOTO   038
+003A:  DECFSZ 78,F
+003B:  GOTO   037
+003C:  MOVLW  4A
+003D:  MOVWF  77
+003E:  DECFSZ 77,F
+003F:  GOTO   03E
+0040:  GOTO   041
+0041:  DECFSZ 00,F
+0042:  GOTO   035
+0043:  RETURN
+....................  
+.................... //Headers 
+.................... void action_close(); // Fechamento da cancela 
+.................... void close_excep(); 
+....................  
+.................... //Global Variables 
+.................... int1 veic, train, gate_open, gate_close, flag_open; 
+.................... int16 motor_close, motor_open; 
+....................  
+.................... #int_ext 
+.................... void routine_ext() { 
+....................    output_Low(PIN_D1); 
+*
+0064:  BSF    03.5
+0065:  BCF    08.1
+0066:  BCF    03.5
+0067:  BCF    08.1
+....................    train = input(pin_b0); 
+0068:  BSF    03.5
+0069:  BSF    06.0
+006A:  BCF    03.5
+006B:  BCF    28.1
+006C:  BTFSC  06.0
+006D:  BSF    28.1
+....................    if(train == 0) { 
+006E:  BTFSC  28.1
+006F:  GOTO   0A8
+....................       close_excep(); 
+....................    } 
+....................    train = input(pin_b0); 
+*
+00A8:  BSF    03.5
+00A9:  BSF    06.0
+00AA:  BCF    03.5
+00AB:  BCF    28.1
+00AC:  BTFSC  06.0
+00AD:  BSF    28.1
+....................    while(train == 0) { 
+00AE:  BTFSC  28.1
+00AF:  GOTO   0C6
+....................       train = input(pin_b0); 
+00B0:  BSF    03.5
+00B1:  BSF    06.0
+00B2:  BCF    03.5
+00B3:  BCF    28.1
+00B4:  BTFSC  06.0
+00B5:  BSF    28.1
+....................       //---- AVISO DE ACIONAMENTO DO MOTOR 
+....................       output_High(PIN_D0); 
+00B6:  BSF    03.5
+00B7:  BCF    08.0
+00B8:  BCF    03.5
+00B9:  BSF    08.0
+....................       delay_ms(300); 
+00BA:  MOVLW  02
+00BB:  MOVWF  33
+00BC:  MOVLW  96
+00BD:  MOVWF  34
+00BE:  CALL   02F
+00BF:  DECFSZ 33,F
+00C0:  GOTO   0BC
+....................       output_Low(PIN_D0); 
+00C1:  BSF    03.5
+00C2:  BCF    08.0
+00C3:  BCF    03.5
+00C4:  BCF    08.0
+00C5:  GOTO   0AE
+....................       //---- FIM DO AVISO 
+....................    } 
+00C6:  BCF    0B.1
+00C7:  BCF    0A.3
+00C8:  BCF    0A.4
+00C9:  GOTO   01B
+.................... } 
+....................  
+.................... void close_excep() { 
+....................    //---- AVISO DE ACIONAMENTO DO MOTOR 
+....................    output_High(PIN_D0); 
+*
+0070:  BSF    03.5
+0071:  BCF    08.0
+0072:  BCF    03.5
+0073:  BSF    08.0
+....................    delay_ms(200); 
+0074:  MOVLW  C8
+0075:  MOVWF  34
+0076:  CALL   02F
+....................    output_Low(PIN_D0); 
+0077:  BSF    03.5
+0078:  BCF    08.0
+0079:  BCF    03.5
+007A:  BCF    08.0
+....................    //---- FIM DO AVISO 
+....................     
+....................    output_High(motor_close); 
+007B:  MOVF   29,W
+007C:  MOVWF  33
+007D:  MOVLW  01
+007E:  MOVWF  34
+007F:  CLRF   36
+0080:  CLRF   35
+0081:  CALL   044
+0082:  MOVF   29,W
+0083:  MOVWF  33
+0084:  CLRF   34
+0085:  CLRF   36
+0086:  MOVLW  80
+0087:  MOVWF  35
+0088:  CALL   044
+....................    //ESPERO ABRIR ATE ATIVAR O SENSOR DE CANCELA FECHADA PRA MANTER A SEGURANCA 
+....................    gate_close = input(pin_b1); 
+0089:  BSF    03.5
+008A:  BSF    06.1
+008B:  BCF    03.5
+008C:  BCF    28.3
+008D:  BTFSC  06.1
+008E:  BSF    28.3
+....................    while(gate_close == 1) { 
+008F:  BTFSS  28.3
+0090:  GOTO   09B
+....................       gate_close = input(pin_b1); 
+0091:  BSF    03.5
+0092:  BSF    06.1
+0093:  BCF    03.5
+0094:  BCF    28.3
+0095:  BTFSC  06.1
+0096:  BSF    28.3
+....................       delay_ms(200); 
+0097:  MOVLW  C8
+0098:  MOVWF  34
+0099:  CALL   02F
+009A:  GOTO   08F
+....................    } 
+....................    output_Low(motor_close); 
+009B:  MOVF   29,W
+009C:  MOVWF  33
+009D:  CLRF   34
+009E:  CLRF   36
+009F:  CLRF   35
+00A0:  CALL   044
+00A1:  MOVF   29,W
+00A2:  MOVWF  33
+00A3:  CLRF   34
+00A4:  CLRF   36
+00A5:  MOVLW  80
+00A6:  MOVWF  35
+00A7:  CALL   044
+.................... } 
+....................  
+....................  
+.................... void main() { 
+*
+0158:  BSF    03.5
+0159:  BSF    1F.0
+015A:  BSF    1F.1
+015B:  BSF    1F.2
+015C:  BCF    1F.3
+015D:  MOVLW  07
+015E:  MOVWF  1C
+015F:  BCF    03.7
+0160:  MOVLW  1F
+0161:  ANDWF  03,F
+....................    enable_interrupts(global | int_ext); 
+0162:  MOVLW  D0
+0163:  BCF    03.5
+0164:  IORWF  0B,F
+....................    ext_int_edge(H_TO_L); 
+0165:  BSF    03.5
+0166:  BCF    01.6
+....................     
+....................    motor_close = PIN_D1; 
+0167:  BCF    03.5
+0168:  CLRF   2A
+0169:  MOVLW  41
+016A:  MOVWF  29
+....................    motor_open = PIN_D2; 
+016B:  CLRF   2C
+016C:  MOVLW  42
+016D:  MOVWF  2B
+....................  
+....................    Port_b_pullups(true); 
+016E:  BSF    03.5
+016F:  BCF    01.7
+0170:  BCF    03.5
+0171:  CLRF   27
+0172:  BTFSC  0B.7
+0173:  BSF    27.7
+0174:  BCF    0B.7
+....................     
+....................    // 1 = Inicia com a cancela fechada 
+....................    output_Low(motor_open); 
+0175:  MOVF   2B,W
+0176:  MOVWF  33
+0177:  CLRF   34
+0178:  CLRF   36
+0179:  CLRF   35
+017A:  CALL   044
+017B:  BTFSC  27.7
+017C:  BSF    0B.7
+017D:  CLRF   27
+017E:  BTFSC  0B.7
+017F:  BSF    27.7
+0180:  BCF    0B.7
+0181:  MOVF   2B,W
+0182:  MOVWF  33
+0183:  CLRF   34
+0184:  CLRF   36
+0185:  MOVLW  80
+0186:  MOVWF  35
+0187:  CALL   044
+0188:  BTFSC  27.7
+0189:  BSF    0B.7
+018A:  CLRF   27
+018B:  BTFSC  0B.7
+018C:  BSF    27.7
+018D:  BCF    0B.7
+....................    output_Low(motor_close); 
+018E:  MOVF   29,W
+018F:  MOVWF  33
+0190:  CLRF   34
+0191:  CLRF   36
+0192:  CLRF   35
+0193:  CALL   044
+0194:  BTFSC  27.7
+0195:  BSF    0B.7
+0196:  CLRF   27
+0197:  BTFSC  0B.7
+0198:  BSF    27.7
+0199:  BCF    0B.7
+019A:  MOVF   29,W
+019B:  MOVWF  33
+019C:  CLRF   34
+019D:  CLRF   36
+019E:  MOVLW  80
+019F:  MOVWF  35
+01A0:  CALL   044
+01A1:  BTFSC  27.7
+01A2:  BSF    0B.7
+....................    flag_open = 0; 
+01A3:  BCF    28.4
+....................     
+....................    while(true) { 
+....................       //Primeira etapa se preocupa em abrir pro carro passar e informar a segunda etapa para finalizar 
+....................       veic = input(pin_b3); 
+01A4:  BSF    03.5
+01A5:  BSF    06.3
+01A6:  BCF    03.5
+01A7:  BCF    28.0
+01A8:  BTFSC  06.3
+01A9:  BSF    28.0
+....................       if(veic == 0) { 
+01AA:  BTFSC  28.0
+01AB:  GOTO   1F4
+....................          // Em quanto o portao estiver fechado o motor vai ficar abrindo. 
+....................          //---- AVISO DE ACIONAMENTO DO MOTOR 
+....................          output_High(PIN_D0); 
+01AC:  BSF    03.5
+01AD:  BCF    08.0
+01AE:  BCF    03.5
+01AF:  BSF    08.0
+....................          delay_ms(300); 
+01B0:  MOVLW  02
+01B1:  MOVWF  2D
+01B2:  CLRF   27
+01B3:  BTFSC  0B.7
+01B4:  BSF    27.7
+01B5:  BCF    0B.7
+01B6:  MOVLW  96
+01B7:  MOVWF  34
+01B8:  CALL   02F
+01B9:  BTFSC  27.7
+01BA:  BSF    0B.7
+01BB:  DECFSZ 2D,F
+01BC:  GOTO   1B2
+....................          output_Low(PIN_D0); 
+01BD:  BSF    03.5
+01BE:  BCF    08.0
+01BF:  BCF    03.5
+01C0:  BCF    08.0
+01C1:  CLRF   27
+01C2:  BTFSC  0B.7
+01C3:  BSF    27.7
+01C4:  BCF    0B.7
+....................          //---- FIM DO AVISO 
+....................          output_High(motor_open); 
+01C5:  MOVF   2B,W
+01C6:  MOVWF  33
+01C7:  MOVLW  01
+01C8:  MOVWF  34
+01C9:  CLRF   36
+01CA:  CLRF   35
+01CB:  CALL   044
+01CC:  BTFSC  27.7
+01CD:  BSF    0B.7
+01CE:  CLRF   27
+01CF:  BTFSC  0B.7
+01D0:  BSF    27.7
+01D1:  BCF    0B.7
+01D2:  MOVF   2B,W
+01D3:  MOVWF  33
+01D4:  CLRF   34
+01D5:  CLRF   36
+01D6:  MOVLW  80
+01D7:  MOVWF  35
+01D8:  CALL   044
+01D9:  BTFSC  27.7
+01DA:  BSF    0B.7
+....................          gate_open = input(pin_b2); 
+01DB:  BSF    03.5
+01DC:  BSF    06.2
+01DD:  BCF    03.5
+01DE:  BCF    28.2
+01DF:  BTFSC  06.2
+01E0:  BSF    28.2
+....................          while(gate_open == 1) { 
+01E1:  BTFSS  28.2
+01E2:  GOTO   1F3
+....................             gate_open = input(pin_b2); 
+01E3:  BSF    03.5
+01E4:  BSF    06.2
+01E5:  BCF    03.5
+01E6:  BCF    28.2
+01E7:  BTFSC  06.2
+01E8:  BSF    28.2
+01E9:  CLRF   27
+01EA:  BTFSC  0B.7
+01EB:  BSF    27.7
+01EC:  BCF    0B.7
+....................             delay_ms(200); 
+01ED:  MOVLW  C8
+01EE:  MOVWF  34
+01EF:  CALL   02F
+01F0:  BTFSC  27.7
+01F1:  BSF    0B.7
+01F2:  GOTO   1E1
+....................          } 
+....................          flag_open = 1; 
+01F3:  BSF    28.4
+....................       } 
+....................        
+....................       //Segunda etapa onde a cancela ja foi aberta, precisamos providenciar o fechamento 
+....................       if(flag_open == 1) { 
+01F4:  BTFSC  28.4
+....................          action_close(); 
+01F5:  GOTO   0CA
+....................       } 
+01F6:  GOTO   1A4
+....................        
+....................    } 
+.................... } 
+....................  
+01F7:  SLEEP
+.................... void action_close() { 
+....................    //DESLIGUEI O MOTO 
+....................    output_High(PIN_D0); 
+*
+00CA:  BSF    03.5
+00CB:  BCF    08.0
+00CC:  BCF    03.5
+00CD:  BSF    08.0
+00CE:  CLRF   27
+00CF:  BTFSC  0B.7
+00D0:  BSF    27.7
+00D1:  BCF    0B.7
+....................    output_Low(motor_open); 
+00D2:  MOVF   2B,W
+00D3:  MOVWF  33
+00D4:  CLRF   34
+00D5:  CLRF   36
+00D6:  CLRF   35
+00D7:  CALL   044
+00D8:  BTFSC  27.7
+00D9:  BSF    0B.7
+00DA:  CLRF   27
+00DB:  BTFSC  0B.7
+00DC:  BSF    27.7
+00DD:  BCF    0B.7
+00DE:  MOVF   2B,W
+00DF:  MOVWF  33
+00E0:  CLRF   34
+00E1:  CLRF   36
+00E2:  MOVLW  80
+00E3:  MOVWF  35
+00E4:  CALL   044
+00E5:  BTFSC  27.7
+00E6:  BSF    0B.7
+....................    delay_ms(2000); 
+00E7:  MOVLW  08
+00E8:  MOVWF  2D
+00E9:  CLRF   27
+00EA:  BTFSC  0B.7
+00EB:  BSF    27.7
+00EC:  BCF    0B.7
+00ED:  MOVLW  FA
+00EE:  MOVWF  34
+00EF:  CALL   02F
+00F0:  BTFSC  27.7
+00F1:  BSF    0B.7
+00F2:  DECFSZ 2D,F
+00F3:  GOTO   0E9
+....................     
+....................    //---- AVISO DE ACIONAMENTO DO MOTOR 
+....................    output_High(PIN_D0); 
+00F4:  BSF    03.5
+00F5:  BCF    08.0
+00F6:  BCF    03.5
+00F7:  BSF    08.0
+....................    delay_ms(1000); 
+00F8:  MOVLW  04
+00F9:  MOVWF  2D
+00FA:  CLRF   27
+00FB:  BTFSC  0B.7
+00FC:  BSF    27.7
+00FD:  BCF    0B.7
+00FE:  MOVLW  FA
+00FF:  MOVWF  34
+0100:  CALL   02F
+0101:  BTFSC  27.7
+0102:  BSF    0B.7
+0103:  DECFSZ 2D,F
+0104:  GOTO   0FA
+....................    output_Low(PIN_D0); 
+0105:  BSF    03.5
+0106:  BCF    08.0
+0107:  BCF    03.5
+0108:  BCF    08.0
+0109:  CLRF   27
+010A:  BTFSC  0B.7
+010B:  BSF    27.7
+010C:  BCF    0B.7
+....................    //---- FIM DO AVISO 
+....................     
+....................    output_High(motor_close); 
+010D:  MOVF   29,W
+010E:  MOVWF  33
+010F:  MOVLW  01
+0110:  MOVWF  34
+0111:  CLRF   36
+0112:  CLRF   35
+0113:  CALL   044
+0114:  BTFSC  27.7
+0115:  BSF    0B.7
+0116:  CLRF   27
+0117:  BTFSC  0B.7
+0118:  BSF    27.7
+0119:  BCF    0B.7
+011A:  MOVF   29,W
+011B:  MOVWF  33
+011C:  CLRF   34
+011D:  CLRF   36
+011E:  MOVLW  80
+011F:  MOVWF  35
+0120:  CALL   044
+0121:  BTFSC  27.7
+0122:  BSF    0B.7
+....................    //ESPERO ABRIR ATE ATIVAR O SENSOR DE CANCELA FECHADA PRA MANTER A SEGURANCA 
+....................    gate_close = input(pin_b1); 
+0123:  BSF    03.5
+0124:  BSF    06.1
+0125:  BCF    03.5
+0126:  BCF    28.3
+0127:  BTFSC  06.1
+0128:  BSF    28.3
+....................    while(gate_close == 1) { 
+0129:  BTFSS  28.3
+012A:  GOTO   13B
+....................       gate_close = input(pin_b1); 
+012B:  BSF    03.5
+012C:  BSF    06.1
+012D:  BCF    03.5
+012E:  BCF    28.3
+012F:  BTFSC  06.1
+0130:  BSF    28.3
+0131:  CLRF   27
+0132:  BTFSC  0B.7
+0133:  BSF    27.7
+0134:  BCF    0B.7
+....................       delay_ms(200); 
+0135:  MOVLW  C8
+0136:  MOVWF  34
+0137:  CALL   02F
+0138:  BTFSC  27.7
+0139:  BSF    0B.7
+013A:  GOTO   129
+013B:  CLRF   27
+013C:  BTFSC  0B.7
+013D:  BSF    27.7
+013E:  BCF    0B.7
+....................    } 
+....................    output_Low(motor_close); 
+013F:  MOVF   29,W
+0140:  MOVWF  33
+0141:  CLRF   34
+0142:  CLRF   36
+0143:  CLRF   35
+0144:  CALL   044
+0145:  BTFSC  27.7
+0146:  BSF    0B.7
+0147:  CLRF   27
+0148:  BTFSC  0B.7
+0149:  BSF    27.7
+014A:  BCF    0B.7
+014B:  MOVF   29,W
+014C:  MOVWF  33
+014D:  CLRF   34
+014E:  CLRF   36
+014F:  MOVLW  80
+0150:  MOVWF  35
+0151:  CALL   044
+0152:  BTFSC  27.7
+0153:  BSF    0B.7
+....................    flag_open = 0; 
+0154:  BCF    28.4
+0155:  BCF    0A.3
+0156:  BCF    0A.4
+0157:  GOTO   1F6 (RETURN)
+.................... } 
+....................  
+....................   
+....................  
+
+Configuration Fuses:
+   Word  1: 3F39   XT NOWDT NOPUT NOBROWNOUT NOLVP NOCPD NOWRT NODEBUG NOPROTECT

@@ -1,0 +1,109 @@
+//---- Universidade Federal de Santa Catarina
+//---- Disciplina: Microcontroladores e Microprocessadores
+//---- Desenvolvido por: Ale Chaito
+//---- Controle de um sistema de trem e cancela
+
+#include <16F877A.h>
+#FUSES XT, NOPUT, NOCPD, NOWRT, NOWDT, NOBROWNOUT
+#use delay(crystal=4000000)
+
+//Headers
+void action_close(); // Fechamento da cancela
+
+//Global Variables
+int1 veic, train, gate_open, gate_close, flag_open;
+int16 motor_close, motor_open;
+
+#int_ext
+void routine_ext() {
+   Port_b_pullups(true);
+   gate_open = input(pin_b1);
+   if(gate_open == 0) {
+      //---- AVISO DE ACIONAMENTO DO MOTOR
+      output_High(PIN_D0);
+      //delay_ms(1000);
+      output_Low(PIN_D0);
+      //---- FIM DO AVISO
+      
+      output_High(motor_close);
+      //ESPERO ABRIR ATE ATIVAR O SENSOR DE CANCELA FECHADA PRA MANTER A SEGURANCA
+      gate_close = input(pin_b1);
+      while(gate_close == 1) {
+         gate_close = input(pin_b1);
+         //delay_ms(200);
+      }
+      output_Low(motor_close);
+   }
+   train = input(pin_b0);
+   while(train == 0) {
+      //delay_ms(200);
+   }
+   
+}
+
+
+void main() {
+   enable_interrupts(global | int_ext);
+   
+   motor_close = PIN_D2;
+   motor_open = PIN_D3;
+
+   Port_b_pullups(true);
+   
+   // 1 = Inicia com a cancela fechada
+   output_Low(motor_open);
+   output_Low(motor_close);
+   flag_open = 0;
+   
+   while(true) {
+      //Primeira etapa se preocupa em abrir pro carro passar e informar a segunda etapa para finalizar
+      veic = input(pin_b3);
+      if(veic == 0) {
+         // Em quanto o portao estiver fechado o motor vai ficar abrindo.
+         //---- AVISO DE ACIONAMENTO DO MOTOR
+         output_High(PIN_D0);
+         delay_ms(300);
+         output_Low(PIN_D0);
+         //---- FIM DO AVISO
+         output_High(motor_open);
+         gate_open = input(pin_b0);
+         while(gate_open == 1) {
+            gate_open = input(pin_b0);
+            delay_ms(200);
+         }
+         flag_open = 1;
+      }
+      
+      //Segunda etapa onde a cancela ja foi aberta, precisamos providenciar o fechamento
+      if(flag_open == 1) {
+         action_close();
+      }
+      
+   }
+}
+
+void action_close() {
+   //DESLIGUEI O MOTO
+   output_High(PIN_D0);
+   output_Low(motor_open);
+   delay_ms(2000);
+   
+   //---- AVISO DE ACIONAMENTO DO MOTOR
+   output_High(PIN_D0);
+   delay_ms(1000);
+   output_Low(PIN_D0);
+   //---- FIM DO AVISO
+   
+   output_High(motor_close);
+   //ESPERO ABRIR ATE ATIVAR O SENSOR DE CANCELA FECHADA PRA MANTER A SEGURANCA
+   gate_close = input(pin_b1);
+   while(gate_close == 1) {
+      gate_close = input(pin_b1);
+      delay_ms(200);
+   }
+   output_Low(motor_close);
+   flag_open = 0;
+}
+
+ 
+

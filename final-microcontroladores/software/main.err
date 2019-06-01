@@ -1,0 +1,7 @@
+>>> Warning 216 "main.c" Line 157(1,2): Interrupts disabled during call to prevent re-entrancy:  (@delay_ms1)
+>>> Warning 216 "main.c" Line 157(1,2): Interrupts disabled during call to prevent re-entrancy:  (lcd_send_byte)
+>>> Warning 216 "main.c" Line 157(1,2): Interrupts disabled during call to prevent re-entrancy:  (lcd_gotoxy)
+>>> Warning 216 "main.c" Line 157(1,2): Interrupts disabled during call to prevent re-entrancy:  (@PSTRINGC7_645)
+      Memory usage:   ROM=23%      RAM=5% - 14%
+      0 Errors,  4 Warnings.
+Build Successful.
